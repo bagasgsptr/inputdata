@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ganti Kamera Depan & Belakang</title>
+    <title>Formulir KPPS dengan Kamera Depan & Belakang</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +17,6 @@
         }
 
         .container {
-            text-align: center;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
@@ -28,23 +27,26 @@
 
         h1 {
             color: #333;
+            text-align: center;
         }
 
-        video {
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        input, button {
             width: 100%;
-            max-width: 400px;
-            border-radius: 10px;
-            background-color: #000;
-            margin-bottom: 20px;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
 
         button {
-            padding: 10px 20px;
-            margin-top: 20px;
             background-color: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
 
@@ -52,20 +54,57 @@
             background-color: #45a049;
         }
 
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            background-color: #000;
+            margin-top: 20px;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        #switchButton {
+            background-color: #2196F3;
+            margin-top: 10px;
+        }
+
+        #switchButton:hover {
+            background-color: #1976D2;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Ganti Kamera Depan & Belakang</h1>
-        <video id="video" autoplay></video>
-        <button id="switchButton">Gunakan Kamera Belakang</button>
+        <h1>Formulir KPPS</h1>
+        <form id="form">
+            <label for="nama">Nama:</label>
+            <input type="text" id="nama" name="nama" required>
+
+            <label for="nik">NIK:</label>
+            <input type="text" id="nik" name="nik" required>
+
+            <label for="alamat">Alamat:</label>
+            <input type="text" id="alamat" name="alamat" required>
+
+            <video id="video" autoplay></video>
+            <button type="button" id="takePhotoButton">Ambil Foto</button>
+            <button type="button" id="switchButton">Gunakan Kamera Depan</button>
+
+            <canvas id="canvas"></canvas>
+        </form>
     </div>
 
     <script>
         let currentStream = null;
-        let currentCamera = "user"; // Default ke kamera depan
+        let currentCamera = "environment";  // Default kamera belakang
         const videoElement = document.getElementById('video');
+        const takePhotoButton = document.getElementById('takePhotoButton');
         const switchButton = document.getElementById('switchButton');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
         // Fungsi untuk mengakses kamera
         function startCamera(camera) {
@@ -85,8 +124,23 @@
                 });
         }
 
-        // Mulai kamera pertama kali (kamera depan)
+        // Mulai kamera (kamera belakang secara default)
         startCamera(currentCamera);
+
+        // Fungsi untuk mengambil foto
+        function takePhoto() {
+            const width = videoElement.videoWidth;
+            const height = videoElement.videoHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Gambar frame dari video ke canvas
+            ctx.drawImage(videoElement, 0, 0, width, height);
+
+            // Foto sudah diambil, Anda bisa melakukan sesuatu dengan foto ini, seperti menyimpannya
+            const photoDataUrl = canvas.toDataURL('image/png');
+            alert("Foto berhasil diambil! Data URL: " + photoDataUrl);
+        }
 
         // Fungsi untuk mengganti kamera
         function switchCamera() {
@@ -100,7 +154,10 @@
             startCamera(currentCamera);  // Mulai kamera baru
         }
 
-        // Tambahkan event listener pada tombol
+        // Event listener untuk tombol ambil foto
+        takePhotoButton.addEventListener('click', takePhoto);
+
+        // Event listener untuk tombol ganti kamera
         switchButton.addEventListener('click', switchCamera);
     </script>
 </body>
