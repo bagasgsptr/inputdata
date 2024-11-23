@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data KPPS dengan Kamera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        video, canvas {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Input Data KPPS</h1>
+        <form id="kppsForm">
+            <div class="form-group">
+                <label for="name">Nama Lengkap</label>
+                <input type="text" id="name" placeholder="Masukkan nama lengkap" required>
+            </div>
+            <div class="form-group">
+                <label for="nik">NIK</label>
+                <input type="text" id="nik" placeholder="Masukkan NIK" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Alamat</label>
+                <input type="text" id="address" placeholder="Masukkan alamat" required>
+            </div>
+            <div class="form-group">
+                <label for="camera">Kamera</label>
+                <video id="camera" autoplay></video>
+                <button type="button" id="takePhoto">Ambil Foto</button>
+                <canvas id="photoCanvas" style="display: none;"></canvas>
+            </div>
+            <button type="submit">Tambahkan Data</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>NIK</th>
+                    <th>Alamat</th>
+                    <th>Foto</th>
+                </tr>
+            </thead>
+            <tbody id="dataList">
+                <!-- Data akan ditambahkan di sini -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+        const form = document.getElementById('kppsForm');
+        const dataList = document.getElementById('dataList');
+        const camera = document.getElementById('camera');
+        const photoCanvas = document.getElementById('photoCanvas');
+        const takePhotoButton = document.getElementById('takePhoto');
+        let photoData = "";
+
+        // Akses kamera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                camera.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Kamera tidak dapat diakses:", error);
+            });
+
+        // Ambil foto
+        takePhotoButton.addEventListener('click', () => {
+            const context = photoCanvas.getContext('2d');
+            photoCanvas.width = camera.videoWidth;
+            photoCanvas.height = camera.videoHeight;
+            context.drawImage(camera, 0, 0, camera.videoWidth, camera.videoHeight);
+            photoData = photoCanvas.toDataURL('image/png');
+            alert("Foto berhasil diambil!");
+        });
+
+        // Tambahkan data ke tabel
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            if (!photoData) {
+                alert("Harap ambil foto terlebih dahulu!");
+                return;
+            }
+
+            const name = document.getElementById('name').value;
+            const nik = document.getElementById('nik').value;
+            const address = document.getElementById('address').value;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${nik}</td>
+                <td>${address}</td>
+                <td><img src="${photoData}" alt="Foto KPPS"></td>
+            `;
+
+            dataList.appendChild(row);
+
+            // Reset form
+            form.reset();
+            photoData = "";
+        });
+    </script>
+</body>
+</html>
