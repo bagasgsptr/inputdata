@@ -1,79 +1,107 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kamera Belakang Ponsel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #eaeaea;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganti Kamera Depan & Belakang</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
 
-    video {
-      width: 100%;
-      max-width: 500px;
-      height: auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      color: white;
-      background-color: #007bff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+        h1 {
+            color: #333;
+        }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            background-color: #000;
+            margin-bottom: 20px;
+        }
 
-    canvas {
-      display: none;
-    }
-  </style>
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+    </style>
 </head>
 <body>
-  <h1>Kamera Belakang</h1>
-  <video id="camera" autoplay playsinline></video>
-  <button id="capture">Ambil Gambar</button>
-  <canvas id="snapshot"></canvas>
+    <div class="container">
+        <h1>Ganti Kamera Depan & Belakang</h1>
+        <video id="video" autoplay></video>
+        <button id="switchButton">Gunakan Kamera Belakang</button>
+    </div>
 
-  <script>
-    const video = document.getElementById('camera');
-    const canvas = document.getElementById('snapshot');
-    const button = document.getElementById('capture');
+    <script>
+        let currentStream = null;
+        let currentCamera = "user"; // Default ke kamera depan
+        const videoElement = document.getElementById('video');
+        const switchButton = document.getElementById('switchButton');
 
-    // Meminta akses ke kamera belakang
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: 'environment' } } // Memastikan kamera belakang
-    }).then(stream => {
-      video.srcObject = stream;
-    }).catch(err => {
-      alert('Gagal mengakses kamera: ' + err.message);
-    });
+        // Fungsi untuk mengakses kamera
+        function startCamera(camera) {
+            if (currentStream) {
+                // Hentikan stream sebelumnya
+                currentStream.getTracks().forEach(track => track.stop());
+            }
 
-    // Menangkap gambar dari video
-    button.addEventListener('click', () => {
-      const context = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      alert('Gambar berhasil diambil! Periksa elemen <canvas> untuk hasilnya.');
-    });
-  </script>
+            // Minta akses ke kamera berdasarkan "facingMode"
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: camera } })
+                .then((stream) => {
+                    currentStream = stream;
+                    videoElement.srcObject = stream;
+                })
+                .catch((err) => {
+                    alert('Tidak dapat mengakses kamera: ' + err);
+                });
+        }
+
+        // Mulai kamera pertama kali (kamera depan)
+        startCamera(currentCamera);
+
+        // Fungsi untuk mengganti kamera
+        function switchCamera() {
+            if (currentCamera === "user") {
+                currentCamera = "environment";  // Ganti ke kamera belakang
+                switchButton.textContent = "Gunakan Kamera Depan";
+            } else {
+                currentCamera = "user";  // Ganti ke kamera depan
+                switchButton.textContent = "Gunakan Kamera Belakang";
+            }
+            startCamera(currentCamera);  // Mulai kamera baru
+        }
+
+        // Tambahkan event listener pada tombol
+        switchButton.addEventListener('click', switchCamera);
+    </script>
 </body>
 </html>
