@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Data KPPS dengan Kamera</title>
+    <title>Input Data KPPS dengan Kamera Belakang</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,24 +54,6 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        img {
-            max-width: 100px;
-            height: auto;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
@@ -91,43 +73,33 @@
                 <input type="text" id="address" placeholder="Masukkan alamat" required>
             </div>
             <div class="form-group">
-                <label for="camera">Kamera</label>
+                <label for="camera">Kamera (Belakang)</label>
                 <video id="camera" autoplay></video>
                 <button type="button" id="takePhoto">Ambil Foto</button>
                 <canvas id="photoCanvas" style="display: none;"></canvas>
             </div>
             <button type="submit">Tambahkan Data</button>
         </form>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nama</th>
-                    <th>NIK</th>
-                    <th>Alamat</th>
-                    <th>Foto</th>
-                </tr>
-            </thead>
-            <tbody id="dataList">
-                <!-- Data akan ditambahkan di sini -->
-            </tbody>
-        </table>
     </div>
     <script>
-        const form = document.getElementById('kppsForm');
-        const dataList = document.getElementById('dataList');
         const camera = document.getElementById('camera');
         const photoCanvas = document.getElementById('photoCanvas');
         const takePhotoButton = document.getElementById('takePhoto');
         let photoData = "";
 
-        // Akses kamera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                camera.srcObject = stream;
-            })
-            .catch(error => {
-                console.error("Kamera tidak dapat diakses:", error);
-            });
+        // Akses kamera belakang
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { exact: "environment" } // Menggunakan kamera belakang
+            }
+        })
+        .then(stream => {
+            camera.srcObject = stream;
+        })
+        .catch(error => {
+            console.error("Kamera tidak dapat diakses:", error);
+            alert("Kamera tidak tersedia atau izin ditolak.");
+        });
 
         // Ambil foto
         takePhotoButton.addEventListener('click', () => {
@@ -139,8 +111,8 @@
             alert("Foto berhasil diambil!");
         });
 
-        // Tambahkan data ke tabel
-        form.addEventListener('submit', function (event) {
+        // Fungsi tambah data
+        document.getElementById('kppsForm').addEventListener('submit', (event) => {
             event.preventDefault();
 
             if (!photoData) {
@@ -152,19 +124,12 @@
             const nik = document.getElementById('nik').value;
             const address = document.getElementById('address').value;
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${name}</td>
-                <td>${nik}</td>
-                <td>${address}</td>
-                <td><img src="${photoData}" alt="Foto KPPS"></td>
-            `;
+            console.log("Data dikirim:", { name, nik, address, photoData });
 
-            dataList.appendChild(row);
-
-            // Reset form
-            form.reset();
+            // Reset form setelah berhasil
+            event.target.reset();
             photoData = "";
+            alert("Data berhasil ditambahkan!");
         });
     </script>
 </body>
