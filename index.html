@@ -3,62 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Data KPPS dengan Kamera Belakang</title>
+    <title>Input Data KPPS</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
         .container {
-            max-width: 600px;
-            margin: 20px auto;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .header img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
         h1 {
-            text-align: center;
+            font-size: 20px;
             color: #333;
+            margin: 0;
         }
+
         form {
             margin-bottom: 20px;
         }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            font-size: 14px;
         }
+
         input, button {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 14px;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
-        video, canvas {
+
+        video {
             width: 100%;
+            max-height: 200px;
             border-radius: 8px;
             margin-bottom: 10px;
+        }
+
+        canvas {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Input Data KPPS</h1>
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3f/Logo_KPU.png" alt="Logo KPU">
+            <h1>Input Data KPPS</h1>
+        </div>
+
         <form id="kppsForm">
             <div class="form-group">
                 <label for="name">Nama Lengkap</label>
@@ -76,30 +113,37 @@
                 <label for="camera">Kamera (Belakang)</label>
                 <video id="camera" autoplay></video>
                 <button type="button" id="takePhoto">Ambil Foto</button>
-                <canvas id="photoCanvas" style="display: none;"></canvas>
+                <canvas id="photoCanvas"></canvas>
             </div>
             <button type="submit">Tambahkan Data</button>
         </form>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
         const camera = document.getElementById('camera');
         const photoCanvas = document.getElementById('photoCanvas');
         const takePhotoButton = document.getElementById('takePhoto');
+        const form = document.getElementById('kppsForm');
         let photoData = "";
+        let excelData = [["Nama Lengkap", "NIK", "Alamat", "Foto (Base64)"]];
 
-        // Akses kamera belakang
-        navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { exact: "environment" } // Menggunakan kamera belakang
+        // Mulai kamera belakang
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" },
+                    audio: false
+                });
+                camera.srcObject = stream;
+            } catch (error) {
+                console.error("Tidak dapat mengakses kamera:", error);
+                alert("Pastikan Anda memberikan izin kamera dan menggunakan perangkat dengan kamera.");
             }
-        })
-        .then(stream => {
-            camera.srcObject = stream;
-        })
-        .catch(error => {
-            console.error("Kamera tidak dapat diakses:", error);
-            alert("Kamera tidak tersedia atau izin ditolak.");
-        });
+        }
+
+        startCamera();
 
         // Ambil foto
         takePhotoButton.addEventListener('click', () => {
@@ -107,12 +151,12 @@
             photoCanvas.width = camera.videoWidth;
             photoCanvas.height = camera.videoHeight;
             context.drawImage(camera, 0, 0, camera.videoWidth, camera.videoHeight);
-            photoData = photoCanvas.toDataURL('image/png');
+            photoData = photoCanvas.toDataURL("image/png");
             alert("Foto berhasil diambil!");
         });
 
-        // Fungsi tambah data
-        document.getElementById('kppsForm').addEventListener('submit', (event) => {
+        // Tambahkan data dan ekspor Excel
+        form.addEventListener('submit', (event) => {
             event.preventDefault();
 
             if (!photoData) {
@@ -124,12 +168,20 @@
             const nik = document.getElementById('nik').value;
             const address = document.getElementById('address').value;
 
-            console.log("Data dikirim:", { name, nik, address, photoData });
+            // Tambahkan data ke array
+            excelData.push([name, nik, address, photoData]);
 
-            // Reset form setelah berhasil
-            event.target.reset();
+            // Buat file Excel
+            const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data KPPS");
+            XLSX.writeFile(workbook, "Data_KPPS.xlsx");
+
+            alert("Data berhasil ditambahkan dan disimpan ke file Excel!");
+            
+            // Reset form
+            form.reset();
             photoData = "";
-            alert("Data berhasil ditambahkan!");
         });
     </script>
 </body>
